@@ -1,111 +1,97 @@
 # go-payment-gateway
 
-Prototype payment gateway microservice built with Go, gRPC, PostgreSQL and Docker Compose.
+Микросервис платежного шлюза на Go. Проект сделан как backend pet-project: он показывает создание платежей, подтверждение, refund, работу с PostgreSQL, gRPC API и идемпотентные запросы.
 
-The project demonstrates practical backend concepts:
+## Что умеет сервис
 
-- gRPC API described in `.proto`
-- PostgreSQL schema migrations
-- transaction handling with `pgx`
-- idempotent write requests
-- refund workflow
-- clean project structure
-- structured JSON logging
-- Docker Compose environment
+- Создает платеж со статусом `PENDING`.
+- Подтверждает платеж и переводит его в `SUCCEEDED`.
+- Делает refund и переводит платеж в `REFUNDED`.
+- Возвращает платеж вместе с историей транзакций.
+- Защищает write-запросы от дублей через `idempotency_key`.
+- Хранит платежи, транзакции и idempotency keys в PostgreSQL.
+
+## Стек
+
+- Go
+- gRPC / Protocol Buffers
+- PostgreSQL
+- Docker Compose
+- SQL migrations
+- pgx
 
 ## API
 
-The service exposes four gRPC methods:
+gRPC-контракт описан в файле:
 
-- `CreatePayment` creates a `PENDING` payment.
-- `ConfirmPayment` moves a payment to `SUCCEEDED`.
-- `RefundPayment` creates a refund transaction and moves a payment to `REFUNDED`.
-- `GetPayment` returns a payment with its transactions.
+```text
+proto/payment/v1/payment.proto
+```
 
-Write requests require an `idempotency_key`. If the same key is sent with the same request payload, the service returns the saved response. If the same key is reused with different payload, the service returns an error.
+Основные методы:
 
-## Requirements
+- `CreatePayment` — создание платежа.
+- `ConfirmPayment` — подтверждение платежа.
+- `RefundPayment` — возврат платежа.
+- `GetPayment` — получение платежа по ID.
 
-- Go 1.26+
-- Git
-- Docker Desktop
-- Optional: `grpcurl` for manual gRPC calls
+Для write-операций используется `idempotency_key`. Если повторить тот же запрос с тем же ключом, сервис вернет сохраненный результат. Если использовать тот же ключ с другим телом запроса, сервис вернет ошибку.
 
-The project uses `buf` and Go protobuf plugins for code generation. They can be installed locally into `work/bin` with:
+## Быстрый запуск
 
-Windows PowerShell:
+Нужны Go, Git и Docker Desktop.
+
+Запустить весь проект:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\install-tools.ps1
-powershell -ExecutionPolicy Bypass -File .\scripts\generate-proto.ps1
+docker compose up --build -d
 ```
 
-macOS/Linux:
+Проверить контейнеры:
 
-```bash
-make tools
-make proto
+```powershell
+docker compose ps
 ```
 
-## Run With Docker Compose
-
-```bash
-docker compose up --build
-```
-
-The app listens on:
+Сервис будет доступен по адресу:
 
 ```text
 localhost:50051
 ```
 
-## Local Development
-
-Generate gRPC code:
-
-Windows PowerShell:
+Остановить проект:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\install-tools.ps1
-powershell -ExecutionPolicy Bypass -File .\scripts\generate-proto.ps1
+docker compose down
 ```
 
-macOS/Linux:
-
-```bash
-make tools
-make proto
-```
-
-Run tests:
-
-```bash
-make test
-```
-
-Run the app locally:
-
-```bash
-go run ./cmd/payment-gateway
-```
-
-Default PostgreSQL DSN:
-
-```text
-postgres://postgres:postgres@localhost:5432/payment_gateway?sslmode=disable
-```
-
-## Example grpcurl Calls
-
-If `grpcurl` is not installed locally, use the Docker image:
+Остановить проект и удалить данные PostgreSQL:
 
 ```powershell
-'{"amount":2500,"currency":"EUR","idempotency_key":"docker-grpcurl-create-001"}' |
+docker compose down -v
+```
+
+## Проверка
+
+Запустить unit-тесты:
+
+```powershell
+go test ./...
+```
+
+Проверить создание платежа через Docker-версию `grpcurl`:
+
+```powershell
+'{"amount":2500,"currency":"EUR","idempotency_key":"demo-create-001"}' |
   docker run --rm -i --network host fullstorydev/grpcurl:latest `
   -plaintext -d '@' localhost:50051 payment.v1.PaymentGateway/CreatePayment
 ```
 
-Create a payment:
+Повторный запуск этой же команды должен вернуть тот же `payment.id`. Так проверяется идемпотентность.
+
+## Примеры gRPC-запросов
+
+Создать платеж:
 
 ```bash
 grpcurl -plaintext \
@@ -113,7 +99,7 @@ grpcurl -plaintext \
   localhost:50051 payment.v1.PaymentGateway/CreatePayment
 ```
 
-Confirm a payment:
+Подтвердить платеж:
 
 ```bash
 grpcurl -plaintext \
@@ -121,7 +107,7 @@ grpcurl -plaintext \
   localhost:50051 payment.v1.PaymentGateway/ConfirmPayment
 ```
 
-Refund a payment:
+Сделать refund:
 
 ```bash
 grpcurl -plaintext \
@@ -129,7 +115,7 @@ grpcurl -plaintext \
   localhost:50051 payment.v1.PaymentGateway/RefundPayment
 ```
 
-Get a payment:
+Получить платеж:
 
 ```bash
 grpcurl -plaintext \
@@ -137,15 +123,43 @@ grpcurl -plaintext \
   localhost:50051 payment.v1.PaymentGateway/GetPayment
 ```
 
-## Project Structure
+## Генерация gRPC-кода
+
+Go-код для gRPC генерируется из `.proto` файла. На Windows можно использовать готовые скрипты:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\install-tools.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\generate-proto.ps1
+```
+
+На macOS/Linux:
+
+```bash
+make tools
+make proto
+```
+
+## Структура проекта
 
 ```text
-cmd/payment-gateway      application entry point
-proto/payment/v1         gRPC contract
-gen/payment/v1           generated protobuf code
-internal/domain          business entities and errors
-internal/usecase         application logic
-internal/repository      PostgreSQL persistence
+cmd/payment-gateway      точка входа в приложение
+proto/payment/v1         gRPC-контракт
+gen/payment/v1           сгенерированный protobuf-код
+internal/domain          бизнес-сущности и ошибки
+internal/usecase         бизнес-логика платежей
+internal/repository      работа с PostgreSQL
 internal/transport/grpc  gRPC handlers
-migrations               database migrations
+migrations               SQL-миграции базы данных
 ```
+
+## Что показывает проект
+
+Проект фокусируется не на количестве кода, а на backend-концепциях:
+
+- проектирование gRPC API;
+- работа с PostgreSQL через repository слой;
+- атомарные операции через database transactions;
+- идемпотентность write-запросов;
+- миграции базы данных;
+- запуск окружения через Docker Compose;
+- разделение кода на `domain`, `usecase`, `repository` и `transport`.
