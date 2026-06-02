@@ -1,0 +1,15 @@
+.env
+.idea/
+.vscode/
+.DS_Store
+
+bin/
+dist/
+tmp/
+
+*.exe
+*.test
+coverage.out
+
+work/
+outputs/
