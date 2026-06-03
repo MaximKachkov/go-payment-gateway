@@ -10,11 +10,11 @@ import (
 	"syscall"
 	"time"
 
+	paymentv1 "github.com/MaximKachkov/go-payment-gateway/gen/payment/v1"
+	"github.com/MaximKachkov/go-payment-gateway/internal/repository/postgres"
+	grpcserver "github.com/MaximKachkov/go-payment-gateway/internal/transport/grpc"
+	"github.com/MaximKachkov/go-payment-gateway/internal/usecase"
 	"github.com/jackc/pgx/v5/pgxpool"
-	paymentv1 "github.com/maxotik/go-payment-gateway/gen/payment/v1"
-	"github.com/maxotik/go-payment-gateway/internal/repository/postgres"
-	grpcserver "github.com/maxotik/go-payment-gateway/internal/transport/grpc"
-	"github.com/maxotik/go-payment-gateway/internal/usecase"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )

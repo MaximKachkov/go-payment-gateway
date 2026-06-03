@@ -620,7 +620,7 @@ const file_payment_v1_payment_proto_rawDesc = "" +
 	"\x0eConfirmPayment\x12!.payment.v1.ConfirmPaymentRequest\x1a\x1b.payment.v1.PaymentResponse\x12N\n" +
 	"\rRefundPayment\x12 .payment.v1.RefundPaymentRequest\x1a\x1b.payment.v1.PaymentResponse\x12H\n" +
 	"\n" +
-	"GetPayment\x12\x1d.payment.v1.GetPaymentRequest\x1a\x1b.payment.v1.PaymentResponseB@Z>github.com/maxotik/go-payment-gateway/gen/payment/v1;paymentv1b\x06proto3"
+	"GetPayment\x12\x1d.payment.v1.GetPaymentRequest\x1a\x1b.payment.v1.PaymentResponseBEZCgithub.com/MaximKachkov/go-payment-gateway/gen/payment/v1;paymentv1b\x06proto3"
 
 var (
 	file_payment_v1_payment_proto_rawDescOnce sync.Once

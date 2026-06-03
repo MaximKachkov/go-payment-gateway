@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/maxotik/go-payment-gateway/internal/domain"
+	"github.com/MaximKachkov/go-payment-gateway/internal/domain"
 )
 
 const (

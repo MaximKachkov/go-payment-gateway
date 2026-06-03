@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/maxotik/go-payment-gateway/internal/domain"
+	"github.com/MaximKachkov/go-payment-gateway/internal/domain"
 )
 
 func TestCreatePaymentIsIdempotent(t *testing.T) {

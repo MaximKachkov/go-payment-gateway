@@ -1,4 +1,4 @@
-module github.com/maxotik/go-payment-gateway
+module github.com/MaximKachkov/go-payment-gateway
 
 go 1.26.2
 

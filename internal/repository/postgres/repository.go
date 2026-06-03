@@ -6,10 +6,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/MaximKachkov/go-payment-gateway/internal/domain"
+	"github.com/MaximKachkov/go-payment-gateway/internal/usecase"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/maxotik/go-payment-gateway/internal/domain"
-	"github.com/maxotik/go-payment-gateway/internal/usecase"
 )
 
 type Repository struct {
